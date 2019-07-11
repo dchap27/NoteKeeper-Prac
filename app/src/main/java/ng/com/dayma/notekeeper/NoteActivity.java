@@ -143,7 +143,7 @@ public class NoteActivity extends AppCompatActivity {
 
     private void saveNote() {
         mNote.setCourse((CourseInfo) mSpinnerCourses.getSelectedItem());
-        mNote.setText(mTextNoteTitle.getText().toString());
+        mNote.setTitle(mTextNoteTitle.getText().toString());
         mNote.setText(mTextNoteText.getText().toString());
     }
 
