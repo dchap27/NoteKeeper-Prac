@@ -161,10 +161,32 @@ public class NoteActivity extends AppCompatActivity {
         } else if(id == R.id.action_cancel){
             mIsCancelling = true;
             finish();
+        } else if(id == R.id.action_next) {
+            moveNext();
         }
 
         return super.onOptionsItemSelected(item);
     }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        MenuItem item = menu.findItem(R.id.action_next);
+        int lastNoteIndex = DataManager.getInstance().getNotes().size() - 1;
+        item.setEnabled(mNotePosition < lastNoteIndex);
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    private void moveNext() {
+        saveNote(); // save the present Note we're looking at
+        ++mNotePosition;
+        mNote = DataManager.getInstance().getNotes().get(mNotePosition);
+
+        saveOriginalNoteValues(); // save the next note displayed before any editing
+        displayNote(mSpinnerCourses, mTextNoteTitle, mTextNoteText);
+        invalidateOptionsMenu(); // to enable calling of onPrepareOptionsMenu again and check for
+        // possible conditions
+    }
+
 
     private void sendEmail() {
         CourseInfo course = (CourseInfo) mSpinnerCourses.getSelectedItem();
