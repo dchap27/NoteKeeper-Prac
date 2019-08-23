@@ -1,7 +1,13 @@
 package ng.com.dayma.notekeeper;
 
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+
 import java.util.ArrayList;
 import java.util.List;
+
+import ng.com.dayma.notekeeper.NoteKeeperDatabaseContract.CourseInfoEntry;
+import ng.com.dayma.notekeeper.NoteKeeperDatabaseContract.NoteInfoEntry;
 
 /**
  * Created by Jim.
@@ -16,10 +22,73 @@ public class DataManager {
     public static DataManager getInstance() {
         if(ourInstance == null) {
             ourInstance = new DataManager();
-            ourInstance.initializeCourses();
-            ourInstance.initializeExampleNotes();
+//            ourInstance.initializeCourses();
+//            ourInstance.initializeExampleNotes();
         }
         return ourInstance;
+    }
+
+    public static void loadFromDatabase (NoteKeeperOpenHelper dbHelper) {
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        final String[] courseColumns = {
+                CourseInfoEntry.COLUMN_COURSE_ID,
+                CourseInfoEntry.COLUMN_COURSE_TITLE
+        };
+        // we query the database and get the specified COLUMNS from the TABLE
+        // the last parameter is the order argument
+        Cursor courseCursor = db.query(CourseInfoEntry.TABLE_NAME,
+                courseColumns, null, null, null, null, CourseInfoEntry.COLUMN_COURSE_TITLE + " DESC"); //DESCENDING ORDER
+        loadCoursesFromDatabase(courseCursor);
+
+
+        final String[] noteColumns = {
+                NoteInfoEntry.COLUMN_NOTE_TITLE,
+                NoteInfoEntry.COLUMN_NOTE_TEXT,
+                NoteInfoEntry.COLUMN_COURSE_ID
+        };
+        // order the notes using multiple columns
+        String noteOrderBy = NoteInfoEntry.COLUMN_COURSE_ID + "," + NoteInfoEntry.COLUMN_NOTE_TITLE;
+        Cursor noteCursor = db.query(NoteInfoEntry.TABLE_NAME,
+                noteColumns, null, null, null, null, noteOrderBy);
+        loadNotesFromDatabase(noteCursor);
+    }
+
+    private static void loadNotesFromDatabase(Cursor cursor) {
+        int noteTitlePos = cursor.getColumnIndex(NoteInfoEntry.COLUMN_NOTE_TITLE);
+        int noteTextPos = cursor.getColumnIndex(NoteInfoEntry.COLUMN_NOTE_TEXT);
+        int courseIdPos = cursor.getColumnIndex(NoteInfoEntry.COLUMN_COURSE_ID);
+
+        DataManager dm = getInstance();
+        dm.mNotes.clear();
+
+        while (cursor.moveToNext()){
+            String noteTitle = cursor.getString(noteTitlePos);
+            String noteText = cursor.getString(noteTextPos);
+            String courseId = cursor.getString(courseIdPos);
+
+            CourseInfo noteCourse = dm.getCourse(courseId);
+
+            NoteInfo note = new NoteInfo(noteCourse, noteTitle, noteText);
+            dm.mNotes.add(note);
+        }
+        cursor.close();
+    }
+
+    private static void loadCoursesFromDatabase(Cursor cursor) {
+        int courseIdPos = cursor.getColumnIndex(CourseInfoEntry.COLUMN_COURSE_ID);
+        int courseTitlePos = cursor.getColumnIndex(CourseInfoEntry.COLUMN_COURSE_TITLE);
+
+        DataManager dm = getInstance();
+        dm.mCourses.clear();
+        while (cursor.moveToNext()){
+            String courseId = cursor.getString(courseIdPos);
+            String courseTitle = cursor.getString(courseTitlePos);
+            CourseInfo course = new CourseInfo(courseId, courseTitle, null);
+
+            dm.mCourses.add(course);
+        }
+        // close the cursor to avoid Memory resources leak
+        cursor.close();
     }
 
     public String getCurrentUserName() {
