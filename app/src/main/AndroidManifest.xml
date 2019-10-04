@@ -12,12 +12,11 @@
         <activity
             android:name=".NoteActivity"
             android:label="@string/title_activity_note"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
-
+            android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".NoteListActivity"
             android:label="@string/app_name"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".MainActivity"
             android:label="@string/title_activity_main"
@@ -36,11 +35,14 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="ng.com.dayma.notekeeper.MainActivity" />
         </activity>
+
         <provider
             android:name=".NoteKeeperProvider"
             android:authorities="ng.com.dayma.notekeeper.provider"
             android:enabled="true"
-            android:exported="true"></provider>
+            android:exported="true" />
     </application>
+
+    <uses-permission android:name="android.permission.VIBRATE" />
 
 </manifest>

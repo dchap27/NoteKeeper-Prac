@@ -20,4 +20,7 @@
         android:orderInCategory="102"
         android:title="send as mail"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/action_set_reminder"
+        android:title="set reminder" />
 </menu>
