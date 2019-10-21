@@ -11,12 +11,15 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.SimpleCursorAdapter;
 import android.widget.Spinner;
 
@@ -65,6 +68,7 @@ public class NoteActivity extends AppCompatActivity implements LoaderManager.Loa
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d(TAG, "************** onCreate **************");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_note);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -224,7 +228,7 @@ public class NoteActivity extends AppCompatActivity implements LoaderManager.Loa
             // otherwise save as newNote
             saveNote();
         }
-        Log.d(TAG, "onPause");
+        Log.d(TAG, "************** onPause **************");
     }
 
     private void deleteFromDatabase() {
@@ -249,14 +253,48 @@ public class NoteActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
     private void createNewNote() {
-//        ContentValues values = new ContentValues();
-//        values.put(NoteInfoEntry.COLUMN_COURSE_ID, "");
-//        values.put(NoteInfoEntry.COLUMN_NOTE_TITLE, "");
-//        values.put(NoteInfoEntry.COLUMN_NOTE_TEXT, "");
-//
-//        SQLiteDatabase db = mDbOpenHelper.getWritableDatabase();
-//        // db.insert returns the ID of the new row
-//        mNoteId = (int) db.insert(NoteInfoEntry.TABLE_NAME, null, values);
+
+        AsyncTask<ContentValues, Integer, Uri> task = new AsyncTask<ContentValues, Integer, Uri>() {
+
+            private ProgressBar mProgressBar;
+
+            @Override
+            protected void onPreExecute() {
+                mProgressBar = (ProgressBar)  findViewById(R.id.progress_bar);
+                mProgressBar.setVisibility(View.VISIBLE);
+                mProgressBar.setProgress(1);
+            }
+
+            @Override
+            protected Uri doInBackground(ContentValues... params) {
+                Log.d(TAG, "doInBackground - thread: " + Thread.currentThread().getId());
+                ContentValues insertValues = params[0];
+                Uri rowUri = getContentResolver().insert(Notes.CONTENT_URI, insertValues);
+                simulateLongRunningWork(); // simulate slow database work
+                publishProgress(2);
+
+
+                simulateLongRunningWork();
+                publishProgress(3);
+
+                return rowUri;
+            }
+
+            @Override
+            protected void onProgressUpdate(Integer... values) {
+                int progressValue = values[0];
+                mProgressBar.setProgress(progressValue);
+            }
+
+            @Override
+            protected void onPostExecute(Uri uri) {
+                Log.d(TAG, "onPostExecute - thread: " + Thread.currentThread().getId());
+                mNoteUri = uri;
+                displaySnackbar(mNoteUri.toString());
+                mProgressBar.setVisibility(View.GONE);
+
+            }
+        };
 
         // use content resolver to insert data into the database
         ContentValues values = new ContentValues();
@@ -264,7 +302,19 @@ public class NoteActivity extends AppCompatActivity implements LoaderManager.Loa
         values.put(Notes.COLUMN_NOTE_TITLE, "");
         values.put(Notes.COLUMN_NOTE_TEXT, "");
 
-        mNoteUri = getContentResolver().insert(Notes.CONTENT_URI, values);
+        Log.d(TAG, "call to execute - thread: " + Thread.currentThread().getId());
+        task.execute(values);
+    }
+
+    private void displaySnackbar(String message) {
+        View view = findViewById(R.id.spinner_courses);
+        Snackbar.make(view, message, Snackbar.LENGTH_LONG).show();
+    }
+
+    private void simulateLongRunningWork() {
+        try {
+            Thread.sleep(2000);
+        } catch(Exception ex) {}
     }
 
     private void saveNote() {
