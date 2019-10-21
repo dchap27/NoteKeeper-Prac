@@ -42,9 +42,19 @@
             android:enabled="true"
             android:exported="true" />
 
+        <receiver
+            android:name=".NoteReminderReceiver"
+            android:enabled="true"
+            android:exported="true"></receiver>
+
+        <service
+            android:name=".NoteUploaderJobService"
+            android:enabled="true"
+            android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE"></service>
         <service
             android:name=".NoteBackupService"
-            android:exported="false"></service>
+            android:exported="false" />
     </application>
 
     <uses-permission android:name="android.permission.VIBRATE" />
