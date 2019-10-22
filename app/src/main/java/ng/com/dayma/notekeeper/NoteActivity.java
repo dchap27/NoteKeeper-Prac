@@ -34,6 +34,7 @@ import ng.com.dayma.notekeeper.NoteKeeperProviderContract.Notes;
 public class NoteActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>{
     public static final int LOADER_NOTES = 0;
     public static final int LOADER_COURSES = 1;
+    public static final String NOTE_URI = "ng.com.dayma.notekeeper.NOTE_URI";
     private final String TAG = getClass().getSimpleName();
     public static final String NOTE_ID = "ng.com.dayma.notekeeper.NOTE_ID";
     public static final String ORIGINAL_NOTE_COURSE_ID = "ng.com.dayma.notekeeper.ORIGINAL_NOTE_COURSE_ID";
@@ -67,6 +68,8 @@ public class NoteActivity extends AppCompatActivity implements LoaderManager.Loa
         outState.putString(ORIGINAL_NOTE_COURSE_ID, mOriginalNoteCourseId);
         outState.putString(ORIGINAL_NOTE_TITLE, mOriginalNoteTitle);
         outState.putString(ORIGINAL_NOTE_TEXT, mOriginalNoteText);
+
+        outState.putString(NOTE_URI, mNoteUri.toString());
     }
 
     @Override
@@ -97,6 +100,8 @@ public class NoteActivity extends AppCompatActivity implements LoaderManager.Loa
             saveOriginalNoteValues();
         } else {
             restoreOriginalNoteValues(savedInstanceState);
+            String stringNoteUri = savedInstanceState.getString(NOTE_URI);
+            mNoteUri = Uri.parse(stringNoteUri);
         }
 
         mTextNoteTitle = (EditText) findViewById(R.id.text_note_title);
@@ -502,7 +507,7 @@ public class NoteActivity extends AppCompatActivity implements LoaderManager.Loa
         mNoteTitlePos = mNoteCursor.getColumnIndex(NoteInfoEntry.COLUMN_NOTE_TITLE);
         mNoteTextPos = mNoteCursor.getColumnIndex(NoteInfoEntry.COLUMN_NOTE_TEXT);
         // move to the first row in the result
-        mNoteCursor.moveToNext();
+        mNoteCursor.moveToFirst();
         mNotesQueryFinished = true;
         displayNoteWhenQueriesFinished();
 //        displayNote();
